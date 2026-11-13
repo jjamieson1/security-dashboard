@@ -67,11 +67,11 @@ Node/Python/PHP client app reuses the exact same dashboard.
 `init` scans the project and writes `config.json`. It exists because the manifest
 has three kinds of content, and only one of them can be derived from code:
 
-| Content | Who authors it |
-| --- | --- |
-| `app`, `manualDoc`, `checks[]` | **`init`** — detected from the filesystem |
-| which compliance regimes apply | the project's **initialization skill**, as markdown in `security/compliance/` |
-| `standards[]`, `asvs` evidence strings | **the agent**, by reading the code |
+| Content                                | Who authors it                                                                |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| `app`, `manualDoc`, `checks[]`         | **`init`** — detected from the filesystem                                     |
+| which compliance regimes apply         | the project's **initialization skill**, as markdown in `security/compliance/` |
+| `standards[]`, `asvs` evidence strings | **the agent**, by reading the code                                            |
 
 `init` never writes the third group. A generated compliance table full of invented
 evidence is worse than no table, because that section is exactly what a customer
@@ -80,17 +80,17 @@ reports which ones have nothing authored against them yet.
 
 ### Detection
 
-| Signal | Checks proposed | Absence is |
-| --- | --- | --- |
-| `go.mod` | build, vet, test, govulncheck (+ gosec) | drift |
-| `package.json` (per directory) | dependency audit, `dir` set, npm/yarn/pnpm from the lockfile | drift |
-| `pyproject.toml` / `requirements.txt` | pip-audit (+ bandit) | drift |
-| `composer.json` / `Gemfile` / `Cargo.toml` | that ecosystem's audit | drift |
-| `pom.xml` / `build.gradle` | osv-scanner | drift |
-| any repo | gitleaks | drift |
-| any repo | semgrep, syft (SBOM) | a suggestion |
-| `Dockerfile` | trivy | a suggestion |
-| `*.tf` | checkov | a suggestion |
+| Signal                                     | Checks proposed                                              | Absence is   |
+| ------------------------------------------ | ------------------------------------------------------------ | ------------ |
+| `go.mod`                                   | build, vet, test, govulncheck (+ gosec)                      | drift        |
+| `package.json` (per directory)             | dependency audit, `dir` set, npm/yarn/pnpm from the lockfile | drift        |
+| `pyproject.toml` / `requirements.txt`      | pip-audit (+ bandit)                                         | drift        |
+| `composer.json` / `Gemfile` / `Cargo.toml` | that ecosystem's audit                                       | drift        |
+| `pom.xml` / `build.gradle`                 | osv-scanner                                                  | drift        |
+| any repo                                   | gitleaks                                                     | drift        |
+| any repo                                   | semgrep, syft (SBOM)                                         | a suggestion |
+| `Dockerfile`                               | trivy                                                        | a suggestion |
+| `*.tf`                                     | checkov                                                      | a suggestion |
 
 ### Re-running is safe
 
@@ -110,12 +110,12 @@ reports which ones have nothing authored against them yet.
   extension is not silently dropped.
 
 ### `init --check`
+
 It is **gating** in `scripts/security.sh --strict` (the "Security-manifest drift" section), so
 a subproject added without a check fails the run rather than passing quietly. That gap was
 real: `mcp/` shipped with no dependency audit at all, and nothing noticed until `init --check`
 was run by hand. `init --check` never rewrites `config.json`, which is what makes it safe to
 gate on.
-
 
 Exits non-zero on **drift** — the manifest no longer matches the stack:
 
@@ -140,7 +140,7 @@ security/compliance/gdpr.md
 `init` records each one in `config.json` → `complianceDocs` (id from the
 filename, title from the first `#` heading) and the dashboard renders a
 **Frameworks in scope** section. A regime with no authored controls shows as
-*"evidence pending"* rather than being implied to be covered.
+_"evidence pending"_ rather than being implied to be covered.
 
 > **For Claude:** after `init`, read each doc in `security/compliance/` and author
 > the mapping it implies — add a `standards[]` entry with `"framework": "<doc id>"`
@@ -184,10 +184,14 @@ matters, for example a suite whose database tests `t.Skip` without a DSN and
 still exit 0:
 
 ```json
-{ "key": "tests", "gating": true, "command": "go test ./...", "parser": "gotest",
-  "requireEnv": ["BD_TEST_MYSQL_ROOT_DSN"] }
+{
+  "key": "tests",
+  "gating": true,
+  "command": "go test ./...",
+  "parser": "gotest",
+  "requireEnv": ["BD_TEST_MYSQL_ROOT_DSN"]
+}
 ```
-
 
 Need a new output format? Add a `case` to `parseResult` in
 `cmd/security-dashboard/checks.go`.
@@ -203,7 +207,7 @@ They are excluded from the CodeQL **database**, via `LGTM_INDEX_FILTERS` on the
 `codeql-js` command, rather than suppressed rule by rule. Suppression is the
 wrong instrument here: any JavaScript query can trip on 1.3MB of vendored code,
 so per-rule entries become whack-a-mole, and each one also blinds us to a
-genuine finding in any *other* file that happens to share that rule. CodeQL
+genuine finding in any _other_ file that happens to share that rule. CodeQL
 reads neither `.gitignore` nor `.semgrepignore`, so the filter has to be stated
 on the command.
 
@@ -245,14 +249,14 @@ go run ./cmd/security-dashboard task done <id>     --owner jamie --note "no find
 re-renders. **Completion is a commit** — git history, not memory, is the audit
 trail for when a manual control was last exercised and by whom.
 
-| State | Meaning |
-| --- | --- |
-| `never run` | no `lastRun` recorded — a control never performed |
-| `overdue` | past `lastRun + cadence` |
-| `due soon` | due within 14 days |
-| `current` | inside the cadence window |
-| `per release` | event-driven cadence, on record — no deadline is invented |
-| `waived` / `blocked` | set `status` by hand; overrides the calendar |
+| State                | Meaning                                                   |
+| -------------------- | --------------------------------------------------------- |
+| `never run`          | no `lastRun` recorded — a control never performed         |
+| `overdue`            | past `lastRun + cadence`                                  |
+| `due soon`           | due within 14 days                                        |
+| `current`            | inside the cadence window                                 |
+| `per release`        | event-driven cadence, on record — no deadline is invented |
+| `waived` / `blocked` | set `status` by hand; overrides the calendar              |
 
 Cadence text is parsed for `weekly` (7d), `monthly` (30d), `quarterly` (90d),
 `semi-annual` / `every 6 months` (182d), `annual` / `yearly` (365d). Anything
@@ -276,7 +280,7 @@ Two skills wrap this tooling:
 
 - **`build-security-pipeline`** — stand the pipeline up in a client
   application: copy the tool, run `init`, author the compliance mapping, wire CI,
-  and generate a playbook for *that* app.
+  and generate a playbook for _that_ app.
 - **`build-security-dashboard`** — implement a dashboard like this one from
   scratch, in another language. The design and the failure modes, not the Go.
 
@@ -295,9 +299,9 @@ To give a client app the same rigor:
 
 The manifest format is the contract; everything else is per-app configuration.
 
-## Reporting a client app to DTP's Health dashboard
+## Reporting a client app to Ticket's Health dashboard
 
-DTP's admin console has a **Health** section that tracks connected applications
+Ticket's admin console has a **Health** section that tracks connected applications
 across security, compliance and availability. To surface a client app there:
 
 ```sh
@@ -320,4 +324,3 @@ accepted (security only).
 specifics):** [`docs/health-report-guide.md`](../docs/health-report-guide.md).
 
 See also: `docs/security-testing-manual.md` (the full pipeline + manual playbook).
-

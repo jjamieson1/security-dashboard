@@ -5,12 +5,12 @@
 > last scan time, clickable reports, and this playbook's task schedule. See
 > `security/README.md`.
 
-How DevPro Trust Platform (DTP) is tested for vulnerabilities. Two halves:
+How Ticket Application is tested for vulnerabilities. Two halves:
 
 1. **Automated checks** — run by the developer before every PR, with
    `scripts/security.sh --strict`. Catches known-CVE deps, insecure code
    patterns, secrets, broken authz, and spec drift.
-2. **Manual playbook** — the classes automation *cannot* find: business logic,
+2. **Manual playbook** — the classes automation _cannot_ find: business logic,
    deep protocol attacks (SAML/OIDC/JWT), and exploratory testing. Scheduled and
    checklist-driven.
 
@@ -42,17 +42,17 @@ This is the control. Run it locally; it exits non-zero on the first gating
 finding. `.github/workflows/ci.yml` mirrors it and would run the same checks if
 Actions were enabled.
 
-| Check | Tool | Finds | Gating? |
-|---|---|---|---|
-| Go dependencies | **govulncheck** | CVEs in Go deps you actually call | ✅ gates |
-| Go SAST | **gosec** | SQL building, weak crypto/RNG, cmd injection | report-only¹ |
-| Cross-lang SAST | **Semgrep** (`owasp-top-ten`, `golang`, `typescript`, `react`) | OWASP Top 10 patterns | report-only¹ |
-| Secrets | **gitleaks** | committed keys/tokens/credentials | report-only¹ |
-| SPA deps | **npm audit** (`web`, `web-admin`) | CVEs in npm deps | report-only¹ |
-| **Authz / IDOR** | **Go tests** (`authz_matrix_test.go`, `security_test.go`) | broken object/function-level authz | ✅ gates |
-| Docs freshness | `gen-openapi --check` | API spec drift | ✅ gates |
+| Check            | Tool                                                           | Finds                                        | Gating?      |
+| ---------------- | -------------------------------------------------------------- | -------------------------------------------- | ------------ |
+| Go dependencies  | **govulncheck**                                                | CVEs in Go deps you actually call            | ✅ gates     |
+| Go SAST          | **gosec**                                                      | SQL building, weak crypto/RNG, cmd injection | report-only¹ |
+| Cross-lang SAST  | **Semgrep** (`owasp-top-ten`, `golang`, `typescript`, `react`) | OWASP Top 10 patterns                        | report-only¹ |
+| Secrets          | **gitleaks**                                                   | committed keys/tokens/credentials            | report-only¹ |
+| SPA deps         | **npm audit** (`web`, `web-admin`)                             | CVEs in npm deps                             | report-only¹ |
+| **Authz / IDOR** | **Go tests** (`authz_matrix_test.go`, `security_test.go`)      | broken object/function-level authz           | ✅ gates     |
+| Docs freshness   | `gen-openapi --check`                                          | API spec drift                               | ✅ gates     |
 
-¹ *Report-only* = runs and prints findings but does not fail the run. Triage,
+¹ _Report-only_ = runs and prints findings but does not fail the run. Triage,
 then promote to gating.
 
 Two more gate today that the table above predates: **golangci-lint**
@@ -72,11 +72,11 @@ after security-relevant work — not on every commit.
 `.github/workflows/security-nightly.yml` exists and does not execute. Of its
 three jobs, only one represents a capability that is actually lost:
 
-| Check | Tool | Status |
-|---|---|---|
-| Semantic SAST | **CodeQL** | **Covered locally** — `codeql-go` and `codeql-js` run in the dashboard scan |
-| Deep SCA | **osv-scanner** | **Largely redundant** — govulncheck covers Go, npm audit covers both SPAs. osv adds cross-ecosystem breadth and the Trust Node SDK's `go.sum` |
-| **DAST** (live app) | **OWASP ZAP** API scan | **NOT PERFORMED.** No local equivalent exists |
+| Check               | Tool                   | Status                                                                                                                                        |
+| ------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semantic SAST       | **CodeQL**             | **Covered locally** — `codeql-go` and `codeql-js` run in the dashboard scan                                                                   |
+| Deep SCA            | **osv-scanner**        | **Largely redundant** — govulncheck covers Go, npm audit covers both SPAs. osv adds cross-ecosystem breadth and the Trust Node SDK's `go.sum` |
+| **DAST** (live app) | **OWASP ZAP** API scan | **NOT PERFORMED.** No local equivalent exists                                                                                                 |
 
 **Dynamic testing now runs locally** — `scripts/dast.sh` (APP-25). It builds the
 API, starts a throwaway instance on a disposable SQLite database, mints a
@@ -107,8 +107,9 @@ Together: `dast.sh` covers the application, `check-edge-headers.sh` covers the
 composition. Neither substitutes for the other.
 
 **If CI is ever restored**, the ZAP job needs:
-- Variable `STAGING_BASE_URL` — e.g. `https://staging.example.com/dtp`
-- Secret `SCANNER_PAT` — a `dtp_pat_...` token for a **low-privilege, disposable**
+
+- Variable `STAGING_BASE_URL` — e.g. `https://staging.example.com/Ticket`
+- Secret `SCANNER_PAT` — a `Ticket_pat_...` token for a **low-privilege, disposable**
   scanner test-user on staging. (The PAT bearer scheme is CSRF-exempt and needs no
   login flow — ideal for automated authenticated scanning.)
 
@@ -123,6 +124,7 @@ scripts/security.sh --strict   # fail fast on the first gating finding
 ```
 
 Install the local tools once:
+
 ```sh
 go install golang.org/x/vuln/cmd/govulncheck@latest
 go install github.com/securego/gosec/v2/cmd/gosec@latest
@@ -145,6 +147,7 @@ the command above pins a version rather than a prebuilt binary.
 ### Pre-commit (optional but recommended)
 
 Add a `.git/hooks/pre-commit` (or use the `pre-commit` framework):
+
 ```sh
 #!/bin/sh
 gitleaks git --staged --no-banner --redact || exit 1
@@ -178,8 +181,8 @@ go run ./cmd/gen-openapi --check || { echo "OpenAPI stale — run gen-openapi"; 
 
 ### Giving a client application the same pipeline
 
-This document is **DTP's**, and roughly a fifth of it is specific to DTP being an
-identity provider — §B in particular assumes you *are* the IdP, where a client
+This document is **Ticket's**, and roughly a fifth of it is specific to Ticket being an
+identity provider — §B in particular assumes you _are_ the IdP, where a client
 app is a relying party and needs the opposite checks. Do not hand this file to an
 integrator.
 
@@ -190,7 +193,7 @@ application rather than copied from this one.
 
 ## 2. Manual playbook (what automation can't find)
 
-Automated scanners are blind to *intent*. These items need a human (or a
+Automated scanners are blind to _intent_. These items need a human (or a
 protocol-specific tool) and a schedule. Track each release/quarter.
 
 ### A. Broken access control & multi-tenancy — **every release**
@@ -219,9 +222,10 @@ exhaustive. Manually verify:
 
 ### B. Federation protocol attacks — **quarterly + on federation changes**
 
-Generic scanners barely touch these; DTP *is* an IdP, so this is core.
+Generic scanners barely touch these; Ticket _is_ an IdP, so this is core.
 
 **OIDC / OAuth2**
+
 - [ ] Run the **OpenID Foundation Conformance Suite** against staging
       (`/oidc`). Track results next to `docs/oidc-conformance-*.md`.
 - [ ] Verify PKCE is enforced (regression guard for the earlier fix); `state`/
@@ -229,14 +233,14 @@ Generic scanners barely touch these; DTP *is* an IdP, so this is core.
       single-use and short-lived.
 - [ ] `token`/`introspect`/`revoke` authenticate the client, not a session.
 
-**SAML** — *the mechanical mutation set is now automated*
+**SAML** — _the mechanical mutation set is now automated_
 
 Gating check `saml-xsw-xxe` runs on every scan:
 
-| Suite | Covers |
-|---|---|
-| `internal/saml/verify_xsw_test.go` | 9 XSW variants — wrap, reference-move, hidden in `Extensions`, hidden in the Signature's `Object`, duplicate-ID collision, forged sibling, repointed `Reference URI`, empty `Reference URI` (whole-document), signature stripped. Each drives a genuinely crewjam-signed AuthnRequest, so a rejection is the wrapping being caught and not an incidental parse failure. |
-| `internal/saml/verify_xxe_test.go` | XXE across **every** XML entry point DTP has — `encoding/xml` (`messageIssuer`, `parseLogoutRequest`, `messageIDInstant`), `etree`, and crewjam's `samlsp.ParseMetadata`. `file://` entities, external DTD fetch (asserts zero hits on a canary server), parameter entities, billion laughs, and a DEFLATE decompression bomb on the redirect binding. Also pins comment-truncation (CVE-2017-11427 class). |
+| Suite                              | Covers                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `internal/saml/verify_xsw_test.go` | 9 XSW variants — wrap, reference-move, hidden in `Extensions`, hidden in the Signature's `Object`, duplicate-ID collision, forged sibling, repointed `Reference URI`, empty `Reference URI` (whole-document), signature stripped. Each drives a genuinely crewjam-signed AuthnRequest, so a rejection is the wrapping being caught and not an incidental parse failure.                                        |
+| `internal/saml/verify_xxe_test.go` | XXE across **every** XML entry point Ticket has — `encoding/xml` (`messageIssuer`, `parseLogoutRequest`, `messageIDInstant`), `etree`, and crewjam's `samlsp.ParseMetadata`. `file://` entities, external DTD fetch (asserts zero hits on a canary server), parameter entities, billion laughs, and a DEFLATE decompression bomb on the redirect binding. Also pins comment-truncation (CVE-2017-11427 class). |
 
 This is the evidence behind the `#nosec G709` annotations on those call sites.
 
@@ -247,22 +251,22 @@ code changes shape.
 - [ ] Assertion replay, audience/recipient/`NotOnOrAfter` validation, and
       signature-required-on-response all hold.
 
-**JWT** — *fully automated, no manual run*
+**JWT** — _fully automated, no manual run_
 
-DTP accepts externally-signed JWTs in exactly two places, and both carry the full
+Ticket accepts externally-signed JWTs in exactly two places, and both carry the full
 attack table (gating checks `jwt-attacks`, `jwt-attacks-sdk`):
 
-| Suite | Verifier |
-|---|---|
-| `internal/partner/assertion_jwt_attacks_test.go` | `partner.AuthenticateAssertion` — the `private_key_jwt` client assertion (RFC 7523) |
-| `sdk/trustnode/auth_jwt_attacks_test.go` | the Trust Node SDK's inbound bearer verifier — shipped to every integrator, so a hole here is a hole in every connected node |
+| Suite                                            | Verifier                                                                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `internal/partner/assertion_jwt_attacks_test.go` | `partner.AuthenticateAssertion` — the `private_key_jwt` client assertion (RFC 7523)                                          |
+| `sdk/trustnode/auth_jwt_attacks_test.go`         | the Trust Node SDK's inbound bearer verifier — shipped to every integrator, so a hole here is a hole in every connected node |
 
 Both cover: `alg:none` (and `None`/`NONE`/absent), RSA→HMAC key confusion (PKIX
 DER, PKCS#1 DER and raw modulus as the HMAC secret), algorithms outside the
 allowlist, unknown/blank `kid`, cross-client key confusion, payload tampering
 after signing, stripped signatures, and unbounded lifetimes.
 
-`jwt_tool` is only worth reaching for against a *black-box* issuer. These
+`jwt_tool` is only worth reaching for against a _black-box_ issuer. These
 verifiers are ours, so the table belongs in CI.
 
 > **Known gap — `jti` replay.** Neither verifier tracks `jti`, so an assertion
@@ -274,6 +278,7 @@ verifiers are ours, so the table belongs in CI.
 
 ZAP is not running (APP-25); use **Burp Suite** for the hands-on depth ZAP
 misses:
+
 - [ ] Proxy a full authenticated session through Burp; exercise auth, payments,
       and consent flows manually.
 - [ ] Active-scan the flows Burp records; triage findings.
@@ -285,6 +290,7 @@ misses:
 ### D. Business logic — **every release**
 
 No tool understands your rules. Walk through:
+
 - [ ] Payment/invoice flows — negative amounts, currency/rounding, replayed
       gateway callbacks, double-submit, state-machine skips.
 - [ ] Registration/activation and password-reset flows — token reuse, expiry,
@@ -294,7 +300,7 @@ No tool understands your rules. Walk through:
 ### Validating the CSP — **it now enforces**
 
 The portal ships an **enforcing** Content-Security-Policy
-(`deploy/apache/dtp.conf.tmpl`). It spent its first iteration report-only so the
+(`deploy/apache/Ticket.conf.tmpl`). It spent its first iteration report-only so the
 policy could be proven against real flows before it was allowed to break them;
 that period is over, and a violation is now a broken flow rather than a console
 line. A wrong CSP does not degrade this portal, it breaks it — a blank SPA, or
@@ -308,7 +314,7 @@ leaving only the `/saml` block enforcing breaks federated logout alone, which is
 the flow least likely to be noticed.
 
 Two policies are set, deliberately. The SPA gets `form-action 'self'`; the SAML
-HTTP-POST binding pages under `/dtp/saml` cannot, because they auto-submit to the
+HTTP-POST binding pages under `/Ticket/saml` cannot, because they auto-submit to the
 **relying party's** ACS/SLO URL, which is by definition another origin. A single
 blanket policy with `form-action 'self'` would report (and later block) every
 federated login.
@@ -326,7 +332,7 @@ finding:**
       blob-URL download path in `web/src/lib/api.ts`.
 - [ ] Complete a **SAML SSO** into a registered SP. Exercises the two crewjam
       auto-submit script hashes and the relaxed `form-action https:`.
-- [ ] Complete a **SAML single logout**. Exercises DTP's own auto-submit hash.
+- [ ] Complete a **SAML single logout**. Exercises Ticket's own auto-submit hash.
 - [ ] Complete an **OIDC** authorization + consent round trip.
 - [ ] Pay an invoice through the gateway flow.
 
@@ -337,10 +343,10 @@ re-run the list.
 Notes on the policy's compromises, so they are not mistaken for oversights:
 
 - `style-src 'unsafe-inline'` stays. Tailwind plus React `style={{}}` props make
-  removing it impractical, and inline *style* is a far weaker vector than inline
+  removing it impractical, and inline _style_ is a far weaker vector than inline
   script. Tighten later with `style-src-attr`.
 - The three `'sha256-…'` script sources are the SAML auto-submit scripts — two
-  from crewjam, one from DTP's `postFormTemplate`. They are pinned by
+  from crewjam, one from Ticket's `postFormTemplate`. They are pinned by
   `TestPostBindingScriptsAreAllowlistedByCSP` and
   `TestCrewjamPostBindingScriptsAreAllowlistedByCSP`, which render the real pages
   and fail if a hash drifts from the code. **Never hand-edit a hash** — change
@@ -349,7 +355,7 @@ Notes on the policy's compromises, so they are not mistaken for oversights:
   are kept for old ones.
 - There is **no report sink**. Violations go to the browser console only, which
   is enough for the scripted pass above. Collecting them from real users needs an
-  unauthenticated POST endpoint DTP does not have yet — new attack surface that
+  unauthenticated POST endpoint Ticket does not have yet — new attack surface that
   should not be added just to run this checklist.
 
 ### E. Infra & operational — **quarterly**
@@ -373,13 +379,13 @@ Notes on the policy's compromises, so they are not mistaken for oversights:
 
 ## Cadence summary
 
-| When | What |
-|---|---|
-| Every PR | `scripts/security.sh --strict` (SAST, SCA, secrets, lint, authz tests, a11y) + `/security-review` |
-| Nightly | ZAP DAST, osv-scanner, CodeQL |
-| Every release | Manual §A (access control) + §D (business logic) |
-| Quarterly | §B OIDC conformance, §C (Burp), §E (infra) |
-| Annually | §B SAML exploratory mutation (the fixed XSW/XXE table runs per-scan) |
+| When          | What                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| Every PR      | `scripts/security.sh --strict` (SAST, SCA, secrets, lint, authz tests, a11y) + `/security-review` |
+| Nightly       | ZAP DAST, osv-scanner, CodeQL                                                                     |
+| Every release | Manual §A (access control) + §D (business logic)                                                  |
+| Quarterly     | §B OIDC conformance, §C (Burp), §E (infra)                                                        |
+| Annually      | §B SAML exploratory mutation (the fixed XSW/XXE table runs per-scan)                              |
 
 §B's JWT attacks and the mechanical SAML XSW/XXE set are no longer manual — see
 the gating checks `jwt-attacks`, `jwt-attacks-sdk` and `saml-xsw-xxe`.
