@@ -274,7 +274,7 @@ gets its own summary pill instead.
 
 Two skills wrap this tooling:
 
-- **`build-security-pipeline`** — stand the pipeline up in a DTP-connected client
+- **`build-security-pipeline`** — stand the pipeline up in a client
   application: copy the tool, run `init`, author the compliance mapping, wire CI,
   and generate a playbook for *that* app.
 - **`build-security-dashboard`** — implement a dashboard like this one from
@@ -282,7 +282,7 @@ Two skills wrap this tooling:
 
 ## Reusing this for a client application
 
-To give a client app (permitting, facility booking, …) the same rigor:
+To give a client app the same rigor:
 
 1. Copy `cmd/security-dashboard/` into that repo (no need to copy `security/` —
    `init` creates it).
@@ -312,7 +312,7 @@ evidence from `config.json`:
 ```
 
 Add an `"availability"` section (`{ "status": "healthy", "latencyMs": 42, "detail": "..." }`)
-from your monitoring if you have it. Then in the DTP admin, **Health → Add
+from your monitoring if you have it. Then in the admin, **Health → Add
 application report** (SYSTEM_ADMIN) and upload the file. A bare run JSON is also
 accepted (security only).
 
