@@ -30,7 +30,7 @@ func render(dir string, cfg Config) error {
 		v.Categories = groupByCategory(runs[0].Checks)
 		v.Posture, v.PostureLabel, v.PostureNote = posture(runs[0])
 	} else {
-		v.Posture, v.PostureLabel, v.PostureNote = "none", "No scans yet", "Run: go run ./cmd/security-dashboard scan"
+		v.Posture, v.PostureLabel, v.PostureNote = "none", "No scans yet", "Run: security-dashboard scan"
 	}
 	now := time.Now()
 	v.TaskGroups = groupTasks(tasks.Tasks, now)

@@ -191,7 +191,7 @@ func runInit(dir string, opts initOpts) error {
 	merged.Checks = checks
 	merged.ComplianceDocs = docs
 	printFindings(auditConfig(root, merged, nil, docs))
-	fmt.Printf("\nnext: go run ./cmd/security-dashboard scan\n")
+	fmt.Printf("\nnext: security-dashboard scan\n")
 	return nil
 }
 
