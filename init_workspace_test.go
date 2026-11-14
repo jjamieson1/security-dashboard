@@ -21,8 +21,8 @@ func TestDetectStackFoldsWorkspaceMembersIntoTheirRoot(t *testing.T) {
 		}
 	}
 	write("web/package.json", `{"name":"web","workspaces":["packages/*"]}`)
-	write("web/packages/client/package.json", `{"name":"@devpro/client"}`)
-	write("web/packages/ui/package.json", `{"name":"@devpro/ui"}`)
+	write("web/packages/client/package.json", `{"name":"@example/client"}`)
+	write("web/packages/ui/package.json", `{"name":"@example/ui"}`)
 	write("web/tools/legacy/package.json", `{"name":"legacy"}`) // nested, not a member
 	write("yarnish/package.json", `{"name":"y","workspaces":{"packages":["libs/*"]}}`)
 	write("yarnish/libs/a/package.json", `{"name":"a"}`)

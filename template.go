@@ -328,7 +328,7 @@ const dashboardHTML = `<!doctype html>
     </tbody>
   </table>
   <p class="muted" style="margin:10px 0 0;font-size:13px">Record a completed task with
-    <span class="mono">go run ./cmd/security-dashboard task done &lt;id&gt; --owner &lt;name&gt;</span> — the stamp lands in
+    <span class="mono">security-dashboard task done &lt;id&gt; --owner &lt;name&gt;</span> — the stamp lands in
     <span class="mono">security/tasks.json</span>, so git history is the audit trail.</p>
   {{end}}
 
@@ -354,7 +354,7 @@ const dashboardHTML = `<!doctype html>
   {{end}}
 
   <div class="foot">
-    Generated {{.GeneratedAt}} · <span class="mono">go run ./cmd/security-dashboard scan</span> to refresh ·
+    Generated {{.GeneratedAt}} · <span class="mono">security-dashboard scan</span> to refresh ·
     {{if .Cfg.App.Contact}}Contact <a href="mailto:{{.Cfg.App.Contact}}">{{.Cfg.App.Contact}}</a> · {{end}}
     {{.Cfg.App.Team}}
   </div>

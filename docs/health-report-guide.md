@@ -1,7 +1,7 @@
 # Creating a Health Report for a Connected Application
 
 Connected applications (permitting, facility booking, licensing, …) report their
-own **security, compliance and availability** to the DevPro Trust Platform (Ticket) admin **Health**
+own **security, compliance and availability** to the Ticket admin **Health**
 dashboard by uploading a **health bundle** — a single JSON file.
 
 This guide shows how to produce one for _your_ application.
@@ -38,14 +38,17 @@ has a `checks` array) is also accepted — security only.
 
 ### A. With the `security-dashboard` tool (easiest)
 
-If your repo adopts the `security/` convention (copy `cmd/security-dashboard/` +
-a `security/config.json` — see [`security/README.md`](../security/README.md)),
-configure the checks + compliance that fit _your_ stack, then:
+Install the tool (see the [README](../README.md#install)), let `init` generate a
+`security/config.json` for your stack, review the checks and compliance it
+proposes, then:
 
 ```sh
-go run ./cmd/security-dashboard scan       # run your configured checks
-go run ./cmd/security-dashboard bundle > myapp-health.json
+security-dashboard init                       # first time only
+security-dashboard scan                       # run your configured checks
+security-dashboard bundle > myapp-health.json
 ```
+
+[`examples/health-bundle.json`](../examples/health-bundle.json) shows real output.
 
 The tool emits the correct shape automatically (including the awkward `totals`
 key casing noted below).

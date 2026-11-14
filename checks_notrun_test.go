@@ -13,10 +13,10 @@ import (
 // installed, and a gating test suite whose database tests skipped for want of
 // a DSN, both read as green for weeks.
 func TestAGatingCheckThatCannotRunFailsTheScan(t *testing.T) {
-	const missingTool = "dtp-no-such-tool-app220"
-	const unsetVar = "DTP_APP220_TEST_UNSET_VAR"
+	const missingTool = "no-such-tool-app220"
+	const unsetVar = "APP220_TEST_UNSET_VAR"
 	t.Setenv(unsetVar, "")
-	t.Setenv("DTP_APP220_TEST_SET_VAR", "set")
+	t.Setenv("APP220_TEST_SET_VAR", "set")
 
 	tests := []struct {
 		name        string
@@ -64,7 +64,7 @@ func TestAGatingCheckThatCannotRunFailsTheScan(t *testing.T) {
 		},
 		{
 			name:       "gating, required env set, runs",
-			def:        CheckDef{Key: "tests", Gating: true, Command: "true", Parser: "exit", RequireEnv: []string{"DTP_APP220_TEST_SET_VAR"}},
+			def:        CheckDef{Key: "tests", Gating: true, Command: "true", Parser: "exit", RequireEnv: []string{"APP220_TEST_SET_VAR"}},
 			wantStatus: "pass",
 		},
 	}

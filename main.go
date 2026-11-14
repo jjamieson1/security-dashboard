@@ -2,17 +2,18 @@
 // single, self-contained, shareable HTML dashboard — evidence that the app is
 // tested with rigor, for developers and customers alike.
 //
-//	go run ./cmd/security-dashboard init      # scan the project, write/refresh security/config.json
-//	go run ./cmd/security-dashboard init --check   # CI gate: fail on stack drift, warn on gaps
-//	go run ./cmd/security-dashboard scan     # run all configured checks, record a run, re-render
-//	go run ./cmd/security-dashboard render    # re-render dashboard.html from existing runs
+//	security-dashboard init           # scan the project, write/refresh security/config.json
+//	security-dashboard init --check   # CI gate: fail on stack drift, warn on gaps
+//	security-dashboard scan           # run all configured checks, record a run, re-render
+//	security-dashboard render         # re-render dashboard.html from existing runs
+//	security-dashboard bundle         # health bundle JSON for Ticket's Health dashboard
 //
 // It is deliberately manifest-driven and language-agnostic: `scan` writes a JSON
 // run manifest (+ raw reports) under security/runs/, and `render` builds the page
 // from those manifests. Any project — Go or not — gets the same dashboard by
 // dropping in a security/config.json describing its checks. That makes it a
-// reusable piece of DTP for every client application (permitting, facility
-// booking, …).
+// reusable piece of Ticket for every client application (permitting,
+// facility booking, …).
 package main
 
 import (
@@ -21,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"time"
@@ -190,14 +192,67 @@ type Task struct {
 
 // ---- entrypoint ------------------------------------------------------------
 
+// version is stamped at release time via -ldflags "-X main.version=v1.2.3".
+// A `go install …@vX` build has no ldflags, so fall back to the module version.
+var version = "dev"
+
+func resolvedVersion() string {
+	if version != "dev" {
+		return version
+	}
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		return bi.Main.Version
+	}
+	return version
+}
+
+const usage = `security-dashboard — security & quality evidence for any repository
+
+Usage:
+  security-dashboard <command> [flags]
+
+Commands:
+  init               detect the stack, write/refresh security/config.json + tasks.json
+  init --check       CI gate: exit non-zero on stack drift, warn on gaps (never writes)
+  init --dry-run     show what init would change without writing
+  scan               run every configured check, record a run, re-render
+  render             re-render security/dashboard.html from recorded runs (default)
+  bundle             print a health bundle (JSON) for upload to Ticket's Health dashboard
+  task list          show the manual-task schedule
+  task done <id>     stamp a manual task as performed
+                       [--date YYYY-MM-DD] [--owner <name>] [--note <text>]
+  version            print the version
+  help               show this help
+
+Global flags:
+  --dir <path>       manifest directory (default "security")
+  --trigger <name>   label recorded on a scan: manual | ci | nightly (default "manual")
+
+Docs: https://github.com/jjamieson1/security-dashboard
+`
+
 func main() {
 	dir := "security"
 	trigger := "manual"
 	args := os.Args[1:]
 	cmd := "render"
-	if len(args) > 0 && (args[0] == "scan" || args[0] == "render" || args[0] == "bundle" || args[0] == "init" || args[0] == "task") {
-		cmd = args[0]
-		args = args[1:]
+	if len(args) > 0 {
+		switch args[0] {
+		case "scan", "render", "bundle", "init", "task":
+			cmd = args[0]
+			args = args[1:]
+		case "help", "-h", "--help", "-help":
+			fmt.Print(usage)
+			return
+		case "version", "--version", "-v":
+			fmt.Println("security-dashboard", resolvedVersion())
+			return
+		default:
+			if !strings.HasPrefix(args[0], "-") {
+				fmt.Fprintf(os.Stderr, "security-dashboard: unknown command %q\n\n%s", args[0], usage)
+				os.Exit(2)
+			}
+		}
 	}
 
 	var opts initOpts
@@ -246,7 +301,7 @@ func main() {
 	}
 
 	// `bundle` emits a full health bundle (security + compliance) to stdout, ready
-	// to upload to DTP's admin Health dashboard for this application. Availability
+	// to upload to Ticket's admin Health dashboard for this application. Availability
 	// is left for the caller/monitoring to add.
 	if cmd == "bundle" {
 		b, err := buildBundle(dir, cfg)
@@ -345,7 +400,7 @@ func runTask(dir string, args []string) error {
 	return nil
 }
 
-// buildBundle assembles a health bundle for upload to DTP: the latest security
+// buildBundle assembles a health bundle for upload to Ticket: the latest security
 // run plus the compliance evidence from config. Shape matches the admin Health
 // upload contract ({security, compliance}).
 func buildBundle(dir string, cfg Config) ([]byte, error) {
